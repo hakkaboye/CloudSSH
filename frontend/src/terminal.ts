@@ -113,6 +113,11 @@ export class SSHTerminal {
 
   async connect(config: SSHConnectionConfig): Promise<void> {
     this.lastConfig = config;
+    this.terminal.clear();
+
+    const termStatus = document.getElementById('term-status');
+    if (termStatus) termStatus.innerHTML = '<div class="w-2 h-2 bg-primary-container animate-pulse"></div> Connected';
+
     const wsUrl = new URL(window.location.href);
     wsUrl.protocol = wsUrl.protocol === 'https:' ? 'wss:' : 'ws:';
     wsUrl.pathname = '/api/ssh';
@@ -156,6 +161,10 @@ export class SSHTerminal {
   connectWithWebSocket(ws: WebSocket): void {
     this.lastConfig = null;
     this.ws = ws;
+    this.terminal.clear();
+
+    const termStatus = document.getElementById('term-status');
+    if (termStatus) termStatus.innerHTML = '<div class="w-2 h-2 bg-primary-container animate-pulse"></div> Connected';
 
     ws.onopen = () => {
       this.terminal.writeln('\x1b[32m[+] WebSocket connected, authenticating...\x1b[0m');
@@ -301,6 +310,8 @@ export class SSHTerminal {
     this.ws = null;
     this.disposables.forEach(d => d.dispose());
     this.disposables = [];
+    this.lastConfig = null;
+    this.terminal.clear();
   }
 
   dispose(): void {

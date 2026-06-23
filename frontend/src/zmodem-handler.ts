@@ -55,9 +55,9 @@ export class ZmodemHandler {
         return;
       }
 
-      const packets: Array<Uint8Array> = [];
-      xfer.on('input', (payload: Uint8Array) => {
-        packets.push(payload);
+      const packets: Uint8Array[] = [];
+      xfer.on('input', (payload: number[]) => {
+        packets.push(new Uint8Array(payload));
       });
 
       xfer.accept().then(() => {
@@ -89,14 +89,27 @@ export class ZmodemHandler {
           }
         }).then(() => {
           zsession.close();
+          input.remove();
         });
       } else {
         zsession.close();
+        input.remove();
       }
     };
 
+    // Handle cancel (focus returns without file selection)
+    const onFocusBack = () => {
+      setTimeout(() => {
+        if (input.files?.length === 0) {
+          zsession.close();
+          input.remove();
+        }
+      }, 1000);
+      window.removeEventListener('focus', onFocusBack);
+    };
+    window.addEventListener('focus', onFocusBack);
+
     document.body.appendChild(input);
     input.click();
-    document.body.removeChild(input);
   }
 }

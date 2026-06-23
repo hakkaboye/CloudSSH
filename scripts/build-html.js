@@ -34,15 +34,26 @@ try {
     }
   }
 
-  // 4. Inline CSS (replace <link rel="stylesheet" ...>)
+  // 4. Inline favicon.svg as base64 data URL
+  const faviconPath = path.join(frontendDir, 'public', 'favicon.svg');
+  if (fs.existsSync(faviconPath)) {
+    const faviconContent = fs.readFileSync(faviconPath, 'utf8');
+    const faviconBase64 = Buffer.from(faviconContent).toString('base64');
+    html = html.replace(
+      /href=["']\/favicon\.svg["']/i,
+      `href="data:image/svg+xml;base64,${faviconBase64}"`
+    );
+  }
+
+  // 5. Inline CSS (replace <link rel="stylesheet" ...>)
   html = html.replace(/<link[^>]*rel=["']stylesheet["'][^>]*href=["']\/assets\/[^"']+["'][^>]*>/i, () => `<style>${cssContent}</style>`);
   html = html.replace(/<link[^>]*rel=["']stylesheet["'][^>]*href=["']\/src\/[^"']+["'][^>]*>/i, () => `<style>${cssContent}</style>`);
 
-  // 5. Inline JS (replace <script type="module" src="/src/main.ts"></script> or similar)
+  // 6. Inline JS (replace <script type="module" src="/src/main.ts"></script> or similar)
   html = html.replace(/<script[^>]*type=["']module["'][^>]*src=["']\/assets\/[^"']+["'][^>]*><\/script>/i, () => `<script type="module">${jsContent}</script>`);
   html = html.replace(/<script[^>]*type=["']module["'][^>]*src=["']\/src\/[^"']+["'][^>]*><\/script>/i, () => `<script type="module">${jsContent}</script>`);
 
-  // 6. Write to src/worker/html.ts
+  // 7. Write to src/worker/html.ts
   const escapedHtml = html
     .replace(/\\/g, '\\\\')
     .replace(/`/g, '\\`')
